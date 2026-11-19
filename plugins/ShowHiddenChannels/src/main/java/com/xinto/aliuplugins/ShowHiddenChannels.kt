@@ -51,7 +51,7 @@ fun addHiddenChannelIcon(view: TextView, tint: ColorStateList?) {
 class ShowHiddenChannels : Plugin() {
 
     override fun start(context: Context) {
-        patchTextChannels(patcher)
+        patchTextChannels(patcher, settings)
         patchVoiceChannels(patcher)
     }
 
