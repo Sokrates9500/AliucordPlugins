@@ -3,6 +3,7 @@ package com.xinto.aliuplugins.showhiddenchannels
 import android.view.View
 import android.widget.LinearLayout
 import com.aliucord.api.PatcherAPI
+import com.aliucord.api.SettingsAPI
 import com.aliucord.patcher.after
 import com.aliucord.wrappers.ChannelWrapper.Companion.id
 import com.aliucord.wrappers.ChannelWrapper.Companion.lastMessageId
@@ -22,13 +23,13 @@ import com.xinto.aliuplugins.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-fun patchTextChannels(patcher: PatcherAPI) {
-    patchChannelList(patcher)
+fun patchTextChannels(patcher: PatcherAPI, settings: SettingsAPI) {
+    patchChannelList(patcher, settings)
     patchHiddenChannelLayout(patcher)
     patchHiddenChannelActions(patcher)
 }
 
-private fun patchChannelList(patcher: PatcherAPI) {
+private fun patchChannelList(patcher: PatcherAPI, settings: SettingsAPI) {
     patcher.after<`WidgetChannelListModel$Companion$guildListBuilder$$inlined$forEach$lambda$3`>("invoke") {
         val ret = it.result
         val channel = `$channel`
@@ -60,7 +61,12 @@ private fun patchChannelList(patcher: PatcherAPI) {
             return@after
         }
         if (isChannelVisible(channelName)) {
-            renameChannel(channel, channelName + suffix)
+            if (channelName == "___hidden___") {
+                renameChannel(channel, settings.getString(channel.id, channelName) + suffix)
+            } else {
+                if (!settings.hasKey(channel.id)) settings.setString(channel.id, channelName)
+                renameChannel(channel, channelName + suffix)
+            }
         }
         it.result = ChannelListItemTextChannel(
             channel,
